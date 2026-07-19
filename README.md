@@ -1,5 +1,7 @@
 <h1 align="center">md-pdf-link.nvim</h1>
 
+https://github.com/user-attachments/assets/cfab82e6-c6ac-4b06-b2eb-fbac9b83d65f
+
 > [!NOTE]
 > Neovim plugin for integrating PDF documents in markdown files
 
