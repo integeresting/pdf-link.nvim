@@ -1,19 +1,19 @@
 local M = {}
 
 M.open_pdf_link = function()
-	local utils = require("md-pdf-link.utils")
-	local pagenr, path = utils.parse_pdf_link()
+	local utils = require("pdf-link.utils")
+	local link = utils.parse_pdf_link()
 	local buf_dir = utils.cur_buf_dir()
 
-	if pagenr and path and buf_dir then
-		os.execute("cd " .. buf_dir .. ";" .. "zathura " .. path .. " --page=" .. pagenr .. " &")
+	if link and buf_dir then
+		os.execute("cd " .. buf_dir .. ";" .. "zathura " .. link.path .. " --page=" .. link.pagenr .. " &")
+	else
+		utils.log("could not find a link to open", "error")
 	end
 end
 
 M.put_pdf_link = function()
-	local utils = require("md-pdf-link.utils")
-	local options = require("md-pdf-link.config").options
-	local pwd = vim.fn.getcwd()
+	local utils = require("pdf-link.utils")
 	local pid_cmd =
 			io.popen("busctl list --unique --user | awk '$0 ~ /zathura/ {print $2}'")
 	if pid_cmd == nil then
@@ -37,30 +37,31 @@ M.put_pdf_link = function()
 	end
 	local page = dbus_cmd:read("*l"):sub(3) + 1
 	local path = dbus_cmd:read("*l"):sub(4, -2)
-	local relative_path = path:gsub(pwd, "", 1)
-
-	if #path > #relative_path then
-		path = "." .. relative_path
-	end
 
 	dbus_cmd:close()
 
-	vim.api.nvim_put(
-		{ "[" .. options.markdown_link.description .. " (" .. page .. ")](" .. path .. ")" },
-		"l", true, false
-	)
+	local link = utils.format_link(path, page)
+	if link then
+		vim.api.nvim_put({ link }, "l", true, false)
+	end
 end
 
 M.make_word_list = function()
-	local utils = require("md-pdf-link.utils")
-	local _, path = utils.parse_pdf_link()
+	local utils = require("pdf-link.utils")
+	local link = utils.parse_pdf_link()
+
+	if link == nil then
+		utils.log("could not find a link to open", "error")
+		return
+	end
+
 	local buf_dir = utils.cur_buf_dir()
-	local pdf_name = "DICT-" .. path:gsub(".*/", "")
+	local pdf_name = "DICT-" .. link.path:gsub(".*/", "")
 	local words = {}
 
-	local text_cmd = io.popen("cd " .. buf_dir .. ";" .. "pdftotext " .. path .. " -")
+	local text_cmd = io.popen("cd " .. buf_dir .. ";" .. "pdftotext " .. link.path .. " -")
 	if text_cmd == nil then
-		utils.log("failed to convert pdf '" .. path .. "' at '" .. buf_dir .. "' to text", "error")
+		utils.log("failed to convert pdf '" .. link.path .. "' at '" .. buf_dir .. "' to text", "error")
 		return
 	end
 

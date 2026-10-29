@@ -1,9 +1,9 @@
-<h1 align="center">md-pdf-link.nvim</h1>
+<h1 align="center">pdf-link.nvim</h1>
 
 https://github.com/user-attachments/assets/cfab82e6-c6ac-4b06-b2eb-fbac9b83d65f
 
 > [!NOTE]
-> Neovim plugin for integrating PDF documents in markdown files
+> Neovim plugin for integrating PDF documents in Markdown and Typst files
 
 > [!IMPORTANT]
 > If you want to help add support for other PDF readers, check the [contributing guide](CONTRIBUTING.md)
@@ -17,26 +17,31 @@ https://github.com/user-attachments/assets/cfab82e6-c6ac-4b06-b2eb-fbac9b83d65f
 
 ## Features
 
-- **open** a markdown link to a PDF document at an exact page
+- **open** a link to a PDF document at an exact page
     - format: `[DESCRIPTION (PAGENR)](PDF_LINK)`
-- **paste** the currently opened PDF page as a markdown link under the cursor
+- **paste** the currently opened PDF page as a link under the cursor
 - **wordlist** for auto-completion of the currently opened PDF document
 
 ## Usage
 
 ### Setup
 
-This plugin will be autoloaded upon entering a markdown file.
+This plugin will be autoloaded upon entering a Markdown or Typst file.
 The default config looks like this:
 
 >[!NOTE]
 > If you are fine with the defaults calling `setup` is **not required**
 
 ```lua
-require("md-pdf-link").setup {
-    markdown_link = {
-        -- default description to put in a markdown link `[DESCRIPTION](LINK)`
-        description = "Pdf"
+require("pdf-link").setup {
+    link = {
+        ---default description to put in a link
+        ---markdown example: `[DESCRIPTION](LINK)`
+        description = "Pdf",
+        ---Typst links (file://) do not support relative paths by default.
+        ---If there is a git root, links will can be relative. This needs to be
+        ---configured in the Typst document to work properly.
+        typst_force_absolute = false,
     },
 }
 ```
@@ -46,23 +51,23 @@ require("md-pdf-link").setup {
 Example Keymaps:
 ```lua
 vim.keymap.set(
-    "n", "<leader>po", "<Plug>(MdPdfLinkOpen)",
+    "n", "<leader>po", "<Plug>(PdfLinkOpen)",
     {
-        desc = "open markdown link to pdf",
+        desc = "open link to pdf",
         silent = true,
     }
 )
 
-vim.keymap.set("n", "<leader>pp", "<Plug>(MdPdfLinkPaste)",
+vim.keymap.set("n", "<leader>pp", "<Plug>(PdfLinkPaste)",
     {
-        desc = "paste currently open pdf page as markdown link",
+        desc = "paste currently open pdf page as link",
         silent = true,
     }
 )
 
-vim.keymap.set("n", "<leader>pl", "<Plug>(MdPdfLinkWordList)",
+vim.keymap.set("n", "<leader>pl", "<Plug>(PdfLinkWordList)",
     {
-        desc = "create a dictionary for autocompletion from markdown link under the cursor",
+        desc = "create a dictionary for autocompletion from link under the cursor",
         silent = true,
     }
 )
@@ -72,9 +77,9 @@ vim.keymap.set("n", "<leader>pl", "<Plug>(MdPdfLinkWordList)",
 
 There are also the following commands:
 ```
-:MdPdfLink open
-:MdPdfLink paste
-:MdPdfLink wordlist
+:PdfLink open
+:PdfLink paste
+:PdfLink wordlist
 ```
 
 ## Installation
@@ -84,7 +89,7 @@ There are also the following commands:
 ```lua
 local gh = function(x) return 'https://github.com/' .. x end
 vim.pack.add({
-    { src = gh("integeresting/md-pdf-link.nvim")},
+    { src = gh("integeresting/pdf-link.nvim")},
 })
 ```
 
@@ -92,44 +97,71 @@ vim.pack.add({
 
 ```lua
 {
-    'integeresting/md-pdf-link.nvim',
+    'integeresting/pdf-link.nvim',
     opts = { --[[...]] },
 }
 ```
 
 ## Philosophy
 
-**I take and view my notes in Neovim.**
-Plain text never breaks and I am always able to view, search and process my
-notes in the way I see fit. Since they are also light weight, backups / version
-control with git is a breeze. The only structure (and eye candy) on top with a
-reasonable compromise is markdown.
-I don't think I need to explain why Neovim is great for editing text.
+> **I take and view my notes in Neovim.**
+> Plain text never breaks and I am always able to view, search and process my
+> notes in the way I see fit. Since they are also light weight, backups / version
+> control with git is a breeze. The only structure (and eye candy) on top with a
+> reasonable compromise is markdown.
+> I don't think I need to explain why Neovim is great for editing text.
+>
+> **Of course, this has some obvious short-comings.**
+> Some things are better expressed visually or in a more complex format.
+> For diagrams and images I like to use an [Excalidraw wrapper](https://github.com/integeresting/excalidraw-desktop)
+> I made for local offline use. The other big group are complex math formulas. I
+> tried some inline LaTeX renderers but ultimately wasn't happy with the
+> integration plus this view isn't always available outside of Neovim.
+>
+> **I like writing math and other complex documents with Typst**
+> For the first 3 years of taking math notes I wrote everything in LaTeX, which is
+> the de facto standard I'd say. However I was very dissatisfied with the local
+> experience, the tooling and language syntax at times. After seeing some [Typst](https://typst.app/)
+> and trying it out for myself, I found all my issues vaporized. The scripting
+> language is rich and very accessible, the documentation is extensive and the cli
+> tool + lsp are solid.
+>
+> **So now I write the simple parts in markdown and express everything else with
+> Typst and PDFs.**
+> Often times I find myself referencing a PDF document anyways so they became my
+> common interface for the complex parts of my notes. Through this workflow I
+> slowly solidified this plugin to help speed up linking to and from documents.
+>
+> **As an example** they are very handy for taking notes in university classes.
+> There is no need and or not enough time to copy the contents of the slides.
+> Writing notes based on my own understanding and findings I can then annotate
+> them with the exact slide containing complex math formulas or diagrams while
+> easily keeping up with the lecture. Before I often needed to do some major
+> refactoring at home after.
+>
+> Me ~ Jul 19, 2026
 
-**Of course, this has some obvious short-comings.**
-Some things are better expressed visually or in a more complex format.
-For diagrams and images I like to use an [Excalidraw wrapper](https://github.com/integeresting/excalidraw-desktop)
-I made for local offline use. The other big group are complex math formulas. I
-tried some inline LaTeX renderers but ultimately wasn't happy with the
-integration plus this view isn't always available outside of Neovim.
+**Upgrading my workflow.**
+It's been 3 months since I wrote this section but now I need to revise it
+because it's outdated. Markdown is great and I still agree with everything
+above. After writing a lot of Typst I see great potential in it to replace
+Markdown for me.
 
-**I like writing math and other complex documents with Typst**
-For the first 3 years of taking math notes I wrote everything in LaTeX, which is
-the de facto standard I'd say. However I was very dissatisfied with the local
-experience, the tooling and language syntax at times. After seeing some [Typst](https://typst.app/)
-and trying it out for myself, I found all my issues vaporized. The scripting
-language is rich and very accessible, the documentation is extensive and the cli
-tool + lsp are solid.
+**What I want to improve on.**
+While I like the simplicity of Markdown, as I acknowledged 3 months ago, some
+things are better expressed outside of text. At the time I used Typst, mostly to
+write math equations and only tried a few plugins. Now I often find myself
+wanting to use small scripts in my notes, there is this dynamic between writing
+text and also being able to quickly write programs to go along with it.
+While markdown is everywhere, rendering it to a PDF is surprisingly hard. There
+are many backends, all with different feature support and I was never motivated
+enough to configure all the right styling. With Typst, I have a whole DSL to
+express styling and outputting a PDF or HTML file is easy (as it should be).
+The basic markup also looks very similar between the two, so just viewing them
+with Neovim is often enough.
 
-**So now I write the simple parts in markdown and express everything else with
-Typst and PDFs.**
-Often times I find myself referencing a PDF document anyways so they became my
-common interface for the complex parts of my notes. Through this workflow I
-slowly solidified this plugin to help speed up linking to and from documents.
-
-**As an example** they are very handy for taking notes in university classes.
-There is no need and or not enough time to copy the contents of the slides.
-Writing notes based on my own understanding and findings I can then annotate
-them with the exact slide containing complex math formulas or diagrams while
-easily keeping up with the lecture. Before I often needed to do some major
-refactoring at home after.
+**I still need this plugin.**
+The only thing holding me back from switching over fully was this plugin. I rely
+a lot on this pattern of referencing PDFs. So I now added the same functionality
+for Typst files and while I want to keep the Markdown functionality, I feel the
+need to change the name a little now.
